@@ -104,6 +104,22 @@ class _EditResidentScreenState extends State<EditResidentScreen> {
                         controller: viewModel.peculiaritiesController,
                         maxLines: 3,
                       ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Contato de emergência',
+                        style: AppTextStyle.subtitleStyle,
+                      ),
+                      const SizedBox(height: 12),
+                      AppTextField(
+                        label: 'Nome',
+                        controller: viewModel.emergencyContactNameController,
+                      ),
+                      const SizedBox(height: 16),
+                      AppTextField(
+                        label: 'Telefone',
+                        controller: viewModel.emergencyContactPhoneController,
+                        keyboardType: TextInputType.phone,
+                      ),
                       if (viewModel.errorMessage != null) ...[
                         const SizedBox(height: 16),
                         Text(

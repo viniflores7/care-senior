@@ -2,23 +2,69 @@ import 'package:flutter/material.dart';
 // TODO(usuário): reativar o mapa real — ver comentário mais abaixo.
 // import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:care_senior_study/data/models/clinic.dart';
+import 'package:care_senior_study/data/models/guardian.dart';
 import 'package:care_senior_study/data/models/resident.dart';
 import 'package:care_senior_study/extensions/widget_modifiers.dart';
 import 'package:care_senior_study/style/app_color.dart';
 import 'package:care_senior_study/style/app_text_style.dart';
+import 'package:care_senior_study/ui/widgets/app_avatar/app_avatar.dart';
+import 'package:care_senior_study/ui/widgets/app_button/app_button.dart';
 import 'package:care_senior_study/ui/widgets/mock_map_preview/mock_map_preview.dart';
 
 /// Aba "Clínica": dados de contato e localização da clínica onde o idoso
-/// está, mais as anotações de saúde gerais.
+/// está, anotações de saúde gerais e — só pra equipe — os responsáveis
+/// cadastrados e as ações de vínculo (adicionar responsável, desvincular).
 class ResidentClinicTab extends StatelessWidget {
   const ResidentClinicTab({
     super.key,
     required this.clinic,
     required this.resident,
+    required this.guardians,
+    required this.isStaff,
+    required this.onAddGuardian,
+    required this.canManageLink,
+    required this.onUnlinkResident,
   });
 
   final Clinic? clinic;
   final Resident? resident;
+  final List<Guardian> guardians;
+  final bool isStaff;
+  final VoidCallback onAddGuardian;
+
+  /// Só coordenadoras/enfermeiras desvinculam o idoso da clínica — ver
+  /// `StaffRole.canManageRequests`.
+  final bool canManageLink;
+  final VoidCallback onUnlinkResident;
+
+  Future<void> _confirmUnlink(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Desvincular idoso'),
+        content: Text(
+          'Tem certeza que deseja desvincular ${resident?.name ?? 'o idoso'} '
+          'desta clínica? O idoso volta ao estado "sem clínica" e some da '
+          'lista de idosos da clínica.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text(
+              'Desvincular',
+              style: TextStyle(color: AppColor.danger),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) onUnlinkResident();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,6 +121,63 @@ class ResidentClinicTab extends StatelessWidget {
           resident.healthNotes,
           style: AppTextStyle.bodyStyle.copyWith(color: AppColor.primaryDark),
         ),
+        if (resident.emergencyContactName != null ||
+            resident.emergencyContactPhone != null) ...[
+          const SizedBox(height: 24),
+          Text('Contato de emergência', style: AppTextStyle.subtitleStyle),
+          const SizedBox(height: 8),
+          Text(
+            [
+              resident.emergencyContactName,
+              resident.emergencyContactPhone,
+            ].whereType<String>().join(' · '),
+            style: AppTextStyle.bodyStyle,
+          ),
+        ],
+        const SizedBox(height: 24),
+        Text('Responsáveis', style: AppTextStyle.subtitleStyle),
+        const SizedBox(height: 8),
+        if (guardians.isEmpty)
+          Text(
+            'Nenhum responsável cadastrado.',
+            style: AppTextStyle.bodyStyle,
+          )
+        else
+          for (final guardian in guardians)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                spacing: 12,
+                children: [
+                  AppAvatar(
+                    name: guardian.name,
+                    photoPath: guardian.photoPath,
+                    radius: 18,
+                  ),
+                  Text(guardian.name, style: AppTextStyle.bodyStyle),
+                ],
+              ),
+            ),
+        if (isStaff) ...[
+          const SizedBox(height: 8),
+          AppButton(
+            label: 'Adicionar responsável',
+            type: ButtonType.outlined,
+            icon: Icons.person_add_outlined,
+            onPressed: onAddGuardian,
+          ),
+        ],
+        if (canManageLink) ...[
+          const SizedBox(height: 32),
+          const Divider(color: AppColor.greyMedium),
+          const SizedBox(height: 16),
+          AppButton(
+            label: 'Desvincular idoso da clínica',
+            type: ButtonType.outlined,
+            icon: Icons.link_off,
+            onPressed: () => _confirmUnlink(context),
+          ),
+        ],
       ],
     );
   }

@@ -22,14 +22,20 @@ class ResidentHealthTab extends StatelessWidget {
     required this.showAddButton,
     required this.onAddMedication,
     required this.onAdd,
+    required this.onEditProfile,
   });
 
   final Resident? resident;
   final List<Medication> medications;
   final List<HealthRecord> records;
+
+  /// `true` só pra equipe — controla tanto os botões de cadastro quanto o
+  /// de editar o perfil do idoso (saúde/humor/peculiaridades/contato de
+  /// emergência).
   final bool showAddButton;
   final VoidCallback onAddMedication;
   final VoidCallback onAdd;
+  final VoidCallback onEditProfile;
 
   @override
   Widget build(BuildContext context) {
@@ -40,39 +46,69 @@ class ResidentHealthTab extends StatelessWidget {
         resident != null &&
         (resident.healthNotes.isNotEmpty ||
             resident.mood != null ||
-            resident.peculiarities != null);
+            resident.peculiarities != null ||
+            resident.emergencyContactName != null ||
+            resident.emergencyContactPhone != null);
 
     return ListView(
       children: [
-        if (hasProfileInfo) ...[
-          Text('Perfil do idoso', style: AppTextStyle.subtitleStyle),
-          const SizedBox(height: 12),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColor.primarySoft,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 8,
-              children: [
-                if (resident.healthNotes.isNotEmpty)
-                  Text(resident.healthNotes, style: AppTextStyle.bodyStyle),
-                if (resident.mood != null)
-                  Text(
-                    'Humor: ${resident.mood}',
-                    style: AppTextStyle.captionStyle,
+        if (hasProfileInfo || showAddButton) ...[
+          Row(
+            children: [
+              Text(
+                'Perfil do idoso',
+                style: AppTextStyle.subtitleStyle,
+              ).expanded(),
+              if (showAddButton)
+                IconButton(
+                  icon: const Icon(
+                    Icons.edit_outlined,
+                    color: AppColor.primaryDark,
                   ),
-                if (resident.peculiarities != null)
-                  Text(
-                    'Peculiaridades: ${resident.peculiarities}',
-                    style: AppTextStyle.captionStyle,
-                  ),
-              ],
-            ),
+                  onPressed: onEditProfile,
+                ),
+            ],
           ),
+          const SizedBox(height: 4),
+          if (!hasProfileInfo)
+            Text(
+              'Nenhuma informação de perfil registrada ainda.',
+              style: AppTextStyle.bodyStyle,
+            )
+          else
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColor.primarySoft,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 8,
+                children: [
+                  if (resident.healthNotes.isNotEmpty)
+                    Text(resident.healthNotes, style: AppTextStyle.bodyStyle),
+                  if (resident.mood != null)
+                    Text(
+                      'Humor: ${resident.mood}',
+                      style: AppTextStyle.captionStyle,
+                    ),
+                  if (resident.peculiarities != null)
+                    Text(
+                      'Peculiaridades: ${resident.peculiarities}',
+                      style: AppTextStyle.captionStyle,
+                    ),
+                  if (resident.emergencyContactName != null ||
+                      resident.emergencyContactPhone != null)
+                    Text(
+                      'Contato de emergência: '
+                      '${[resident.emergencyContactName, resident.emergencyContactPhone].whereType<String>().join(' · ')}',
+                      style: AppTextStyle.captionStyle,
+                    ),
+                ],
+              ),
+            ),
           const SizedBox(height: 24),
         ],
         Text('Medicamentos', style: AppTextStyle.subtitleStyle),

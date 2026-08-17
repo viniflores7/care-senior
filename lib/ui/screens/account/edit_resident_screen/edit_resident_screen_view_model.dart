@@ -9,9 +9,12 @@ import 'package:care_senior_study/services/medication_service.dart';
 import 'package:care_senior_study/services/resident_service.dart';
 import 'package:care_senior_study/utils/navigator.dart';
 
-/// Edição dos dados do idoso pelo próprio responsável — só faz sentido
-/// enquanto o idoso ainda não estiver vinculado a uma clínica (depois do
-/// vínculo, quem mantém esses dados é a equipe da clínica).
+/// Edição do perfil de cuidado do idoso (nome, idade, saúde, humor,
+/// peculiaridades, contato de emergência, medicamentos) — não depende do
+/// papel de quem está editando: o responsável chega aqui pela Segurança
+/// enquanto o idoso não está vinculado a nenhuma clínica; depois do
+/// vínculo, é a equipe que mantém esses dados, chegando pela aba de saúde
+/// do detalhe do idoso.
 class EditResidentScreenViewModel extends ChangeNotifier {
   EditResidentScreenViewModel({required this.residentId});
 
@@ -26,6 +29,8 @@ class EditResidentScreenViewModel extends ChangeNotifier {
   final ageController = TextEditingController();
   final healthNotesController = TextEditingController();
   final peculiaritiesController = TextEditingController();
+  final emergencyContactNameController = TextEditingController();
+  final emergencyContactPhoneController = TextEditingController();
 
   Resident? resident;
   List<Medication> medications = [];
@@ -50,6 +55,10 @@ class EditResidentScreenViewModel extends ChangeNotifier {
       ageController.text = loadedResident.age.toString();
       healthNotesController.text = loadedResident.healthNotes;
       peculiaritiesController.text = loadedResident.peculiarities ?? '';
+      emergencyContactNameController.text =
+          loadedResident.emergencyContactName ?? '';
+      emergencyContactPhoneController.text =
+          loadedResident.emergencyContactPhone ?? '';
       selectedMood = loadedResident.mood;
       photoPath = loadedResident.photoPath;
     }
@@ -90,6 +99,13 @@ class EditResidentScreenViewModel extends ChangeNotifier {
           ? null
           : peculiaritiesController.text.trim(),
       photoPath: photoPath,
+      emergencyContactName: emergencyContactNameController.text.trim().isEmpty
+          ? null
+          : emergencyContactNameController.text.trim(),
+      emergencyContactPhone:
+          emergencyContactPhoneController.text.trim().isEmpty
+          ? null
+          : emergencyContactPhoneController.text.trim(),
     );
 
     isSaving = false;
@@ -117,6 +133,8 @@ class EditResidentScreenViewModel extends ChangeNotifier {
     ageController.dispose();
     healthNotesController.dispose();
     peculiaritiesController.dispose();
+    emergencyContactNameController.dispose();
+    emergencyContactPhoneController.dispose();
     super.dispose();
   }
 }

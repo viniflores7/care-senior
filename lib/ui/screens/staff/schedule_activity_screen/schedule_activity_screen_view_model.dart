@@ -22,6 +22,7 @@ class ScheduleActivityScreenViewModel extends ChangeNotifier {
 
   List<Resident> clinicResidents = [];
   final Set<String> selectedResidentIds;
+  String _residentQuery = '';
 
   String? selectedType;
   TimeOfDay selectedTime = TimeOfDay.now();
@@ -36,6 +37,37 @@ class ScheduleActivityScreenViewModel extends ChangeNotifier {
       selectedType == ActivityType.other;
 
   bool get needsPhoto => selectedType == ActivityType.medication;
+
+  List<Resident> get filteredResidents {
+    final query = _residentQuery.trim().toLowerCase();
+    if (query.isEmpty) return clinicResidents;
+    return clinicResidents
+        .where((resident) => resident.name.toLowerCase().contains(query))
+        .toList();
+  }
+
+  bool get allResidentsSelected =>
+      clinicResidents.isNotEmpty &&
+      selectedResidentIds.length == clinicResidents.length;
+
+  void updateResidentSearch(String value) {
+    _residentQuery = value;
+    notifyListeners();
+  }
+
+  /// Marca/desmarca todos os idosos da clínica de uma vez — ignora o filtro
+  /// de busca, já que é um atalho pra atividades pra todo mundo (ex.: "Roda
+  /// de música").
+  void toggleSelectAllResidents() {
+    if (allResidentsSelected) {
+      selectedResidentIds.clear();
+    } else {
+      selectedResidentIds
+        ..clear()
+        ..addAll(clinicResidents.map((resident) => resident.id));
+    }
+    notifyListeners();
+  }
 
   String get detailLabel => switch (selectedType) {
     ActivityType.physicalActivity =>

@@ -6,7 +6,7 @@ import 'package:care_senior_study/data/models/resident.dart';
 import 'package:care_senior_study/extensions/widget_modifiers.dart';
 import 'package:care_senior_study/style/app_color.dart';
 import 'package:care_senior_study/style/app_text_style.dart';
-import 'package:care_senior_study/ui/widgets/app_avatar/app_avatar.dart';
+import 'package:care_senior_study/ui/screens/staff/home_screen/widgets/resident_picker_sheet.dart';
 import 'package:care_senior_study/ui/widgets/app_button/app_button.dart';
 import 'package:care_senior_study/ui/widgets/fade_slide_in/fade_slide_in.dart';
 
@@ -42,25 +42,11 @@ class ClinicHealthTab extends StatelessWidget {
   ) async {
     final residentId = await showModalBottomSheet<String>(
       context: context,
-      builder: (sheetContext) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: ListView(
-            shrinkWrap: true,
-            children: residents
-                .map(
-                  (resident) => ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: AppAvatar(name: resident.name, radius: 18),
-                    title: Text(resident.name),
-                    subtitle: Text('Quarto ${resident.roomNumber}'),
-                    onTap: () => Navigator.of(sheetContext).pop(resident.id),
-                  ),
-                )
-                .toList(),
-          ),
-        ),
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
+      builder: (_) => ResidentPickerSheet(residents: residents),
     );
     if (residentId != null) onPicked(residentId);
   }

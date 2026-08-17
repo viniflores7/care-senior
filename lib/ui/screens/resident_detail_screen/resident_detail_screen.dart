@@ -5,6 +5,7 @@ import 'package:care_senior_study/ui/screens/resident_detail_screen/resident_det
 import 'package:care_senior_study/ui/screens/resident_detail_screen/widgets/resident_activities_tab.dart';
 import 'package:care_senior_study/ui/screens/resident_detail_screen/widgets/resident_clinic_tab.dart';
 import 'package:care_senior_study/ui/screens/resident_detail_screen/widgets/resident_health_tab.dart';
+import 'package:care_senior_study/ui/screens/resident_detail_screen/widgets/resident_messages_tab.dart';
 import 'package:care_senior_study/ui/widgets/app_base_page/app_base_page.dart';
 import 'package:care_senior_study/ui/widgets/app_navigation_bar/app_navigation_bar.dart';
 
@@ -74,6 +75,11 @@ class _ResidentDetailScreenState extends State<ResidentDetailScreen>
                 selectedIcon: Icon(Icons.apartment),
                 label: 'Clínica',
               ),
+              NavigationDestination(
+                icon: Icon(Icons.chat_bubble_outline),
+                selectedIcon: Icon(Icons.chat_bubble),
+                label: 'Mensagens',
+              ),
             ],
           ),
           body: AnimatedSwitcher(
@@ -109,10 +115,26 @@ class _ResidentDetailScreenState extends State<ResidentDetailScreen>
                               viewModel.navigateToAddMedication(context),
                           onAdd: () =>
                               viewModel.navigateToAddHealthRecord(context),
+                          onEditProfile: () =>
+                              viewModel.navigateToEditProfile(context),
                         ),
                         ResidentClinicTab(
                           clinic: viewModel.clinic,
                           resident: viewModel.resident,
+                          guardians: viewModel.guardians,
+                          isStaff: viewModel.isStaff,
+                          onAddGuardian: () =>
+                              viewModel.navigateToAddGuardian(context),
+                          canManageLink:
+                              viewModel.isStaff &&
+                              viewModel.canManageResidentLink,
+                          onUnlinkResident: () =>
+                              viewModel.unlinkFromClinic(context),
+                        ),
+                        ResidentMessagesTab(
+                          messages: viewModel.messages,
+                          viewerRole: viewModel.viewerRole,
+                          onSend: viewModel.sendMessage,
                         ),
                       ],
                     ),

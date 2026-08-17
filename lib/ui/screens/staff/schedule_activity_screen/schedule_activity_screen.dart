@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:care_senior_study/data/models/activity_type.dart';
+import 'package:care_senior_study/extensions/widget_modifiers.dart';
 import 'package:care_senior_study/routing/args/schedule_activity_screen_arguments.dart';
 import 'package:care_senior_study/style/app_color.dart';
 import 'package:care_senior_study/style/app_motion.dart';
@@ -8,6 +9,7 @@ import 'package:care_senior_study/ui/screens/staff/schedule_activity_screen/sche
 import 'package:care_senior_study/ui/widgets/activity_category_icon/activity_category_icon.dart';
 import 'package:care_senior_study/ui/widgets/app_base_page/app_base_page.dart';
 import 'package:care_senior_study/ui/widgets/app_button/app_button.dart';
+import 'package:care_senior_study/ui/widgets/app_search_field/app_search_field.dart';
 import 'package:care_senior_study/ui/widgets/app_text_field/app_text_field.dart';
 import 'package:care_senior_study/ui/widgets/fade_slide_in/fade_slide_in.dart';
 import 'package:care_senior_study/ui/widgets/photo_capture_field/photo_capture_field.dart';
@@ -26,6 +28,7 @@ class _ScheduleActivityScreenState extends State<ScheduleActivityScreen> {
     clinicId: widget.args.clinicId,
     preselectedResidentIds: widget.args.preselectedResidentIds,
   );
+  final _residentSearchController = TextEditingController();
 
   @override
   void initState() {
@@ -35,6 +38,7 @@ class _ScheduleActivityScreenState extends State<ScheduleActivityScreen> {
 
   @override
   void dispose() {
+    _residentSearchController.dispose();
     viewModel.dispose();
     super.dispose();
   }
@@ -118,22 +122,48 @@ class _ScheduleActivityScreenState extends State<ScheduleActivityScreen> {
                         'Selecione quem vai participar dessa atividade.',
                         style: AppTextStyle.captionStyle,
                       ),
-                      const SizedBox(height: 8),
-                      ...viewModel.clinicResidents.map(
-                        (resident) => FadeSlideIn(
-                          child: CheckboxListTile(
-                            contentPadding: EdgeInsets.zero,
-                            value: viewModel.selectedResidentIds.contains(
-                              resident.id,
+                      const SizedBox(height: 12),
+                      AppSearchField(
+                        controller: _residentSearchController,
+                        hint: 'Buscar idoso',
+                        onChanged: viewModel.updateResidentSearch,
+                      ),
+                      if (viewModel.clinicResidents.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        CheckboxListTile(
+                          contentPadding: EdgeInsets.zero,
+                          value: viewModel.allResidentsSelected,
+                          onChanged: (_) => viewModel.toggleSelectAllResidents(),
+                          title: Text(
+                            'Selecionar todos',
+                            style: AppTextStyle.bodyStyle.copyWith(
+                              fontWeight: FontWeight.w600,
                             ),
-                            onChanged: (_) =>
-                                viewModel.toggleResident(resident.id),
-                            title: Text(resident.name),
-                            subtitle: Text('Quarto ${resident.roomNumber}'),
-                            controlAffinity: ListTileControlAffinity.leading,
+                          ),
+                          controlAffinity: ListTileControlAffinity.leading,
+                        ),
+                      ],
+                      if (viewModel.filteredResidents.isEmpty)
+                        Text(
+                          'Nenhum idoso encontrado.',
+                          style: AppTextStyle.bodyStyle,
+                        ).padding(vertical: 8)
+                      else
+                        ...viewModel.filteredResidents.map(
+                          (resident) => FadeSlideIn(
+                            child: CheckboxListTile(
+                              contentPadding: EdgeInsets.zero,
+                              value: viewModel.selectedResidentIds.contains(
+                                resident.id,
+                              ),
+                              onChanged: (_) =>
+                                  viewModel.toggleResident(resident.id),
+                              title: Text(resident.name),
+                              subtitle: Text('Quarto ${resident.roomNumber}'),
+                              controlAffinity: ListTileControlAffinity.leading,
+                            ),
                           ),
                         ),
-                      ),
                       if (viewModel.errorMessage != null) ...[
                         const SizedBox(height: 16),
                         Text(

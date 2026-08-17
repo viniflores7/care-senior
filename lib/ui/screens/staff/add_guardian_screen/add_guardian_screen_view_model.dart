@@ -8,8 +8,16 @@ import 'package:care_senior_study/ui/widgets/medication_draft_sheet/medication_d
 import 'package:care_senior_study/utils/navigator.dart';
 
 class AddGuardianScreenViewModel extends ChangeNotifier {
+  AddGuardianScreenViewModel({this.existingResidentId});
+
   final _authService = GetIt.I<AuthService>();
   final _authStore = GetIt.I<AuthStore>();
+
+  /// Quando preenchido, a tela só cadastra um responsável a mais pra este
+  /// idoso já existente — os campos do idoso ficam escondidos.
+  final String? existingResidentId;
+
+  bool get isAddingToExistingResident => existingResidentId != null;
 
   final guardianNameController = TextEditingController();
   final guardianEmailController = TextEditingController();
@@ -21,6 +29,8 @@ class AddGuardianScreenViewModel extends ChangeNotifier {
   final residentNameController = TextEditingController();
   final residentAgeController = TextEditingController();
   final roomNumberController = TextEditingController();
+  final emergencyContactNameController = TextEditingController();
+  final emergencyContactPhoneController = TextEditingController();
 
   String? guardianPhotoPath;
   String? residentPhotoPath;
@@ -59,11 +69,22 @@ class AddGuardianScreenViewModel extends ChangeNotifier {
   }
 
   Future<void> save(BuildContext context) async {
-    final age = int.tryParse(residentAgeController.text.trim());
     if (guardianNameController.text.trim().isEmpty ||
         guardianEmailController.text.trim().isEmpty ||
-        guardianCpfController.text.trim().isEmpty ||
-        residentNameController.text.trim().isEmpty ||
+        guardianCpfController.text.trim().isEmpty) {
+      errorMessage = 'Preencha todos os campos corretamente.';
+      notifyListeners();
+      return;
+    }
+
+    final existingResidentId = this.existingResidentId;
+    if (existingResidentId != null) {
+      await _saveForExistingResident(context, existingResidentId);
+      return;
+    }
+
+    final age = int.tryParse(residentAgeController.text.trim());
+    if (residentNameController.text.trim().isEmpty ||
         roomNumberController.text.trim().isEmpty ||
         age == null) {
       errorMessage = 'Preencha todos os campos corretamente.';
@@ -88,7 +109,36 @@ class AddGuardianScreenViewModel extends ChangeNotifier {
       roomNumber: roomNumberController.text.trim(),
       clinicId: clinicId,
       residentPhotoPath: residentPhotoPath,
+      emergencyContactName: emergencyContactNameController.text.trim().isEmpty
+          ? null
+          : emergencyContactNameController.text.trim(),
+      emergencyContactPhone:
+          emergencyContactPhoneController.text.trim().isEmpty
+          ? null
+          : emergencyContactPhoneController.text.trim(),
       medicationDrafts: medicationDrafts,
+    );
+
+    isSaving = false;
+    if (!context.mounted) return;
+
+    navigator(context).pop(true);
+  }
+
+  Future<void> _saveForExistingResident(
+    BuildContext context,
+    String residentId,
+  ) async {
+    isSaving = true;
+    errorMessage = null;
+    notifyListeners();
+
+    await _authService.addGuardianToResident(
+      residentId: residentId,
+      guardianName: guardianNameController.text.trim(),
+      guardianEmail: guardianEmailController.text.trim(),
+      guardianCpf: guardianCpfController.text.trim(),
+      guardianPhotoPath: guardianPhotoPath,
     );
 
     isSaving = false;
@@ -105,6 +155,8 @@ class AddGuardianScreenViewModel extends ChangeNotifier {
     residentNameController.dispose();
     residentAgeController.dispose();
     roomNumberController.dispose();
+    emergencyContactNameController.dispose();
+    emergencyContactPhoneController.dispose();
     super.dispose();
   }
 }

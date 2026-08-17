@@ -11,14 +11,18 @@ import 'package:care_senior_study/ui/widgets/medication_draft_list/medication_dr
 import 'package:care_senior_study/ui/widgets/photo_capture_field/photo_capture_field.dart';
 
 class AddGuardianScreen extends StatefulWidget {
-  const AddGuardianScreen({super.key});
+  const AddGuardianScreen({super.key, this.residentId});
+
+  final String? residentId;
 
   @override
   State<AddGuardianScreen> createState() => _AddGuardianScreenState();
 }
 
 class _AddGuardianScreenState extends State<AddGuardianScreen> {
-  final viewModel = AddGuardianScreenViewModel();
+  late final viewModel = AddGuardianScreenViewModel(
+    existingResidentId: widget.residentId,
+  );
 
   @override
   void dispose() {
@@ -29,7 +33,9 @@ class _AddGuardianScreenState extends State<AddGuardianScreen> {
   @override
   Widget build(BuildContext context) {
     return AppBasePage(
-      title: 'Adicionar responsável',
+      title: viewModel.isAddingToExistingResident
+          ? 'Adicionar responsável ao idoso'
+          : 'Adicionar responsável',
       body: ListenableBuilder(
         listenable: viewModel,
         builder: (context, child) {
@@ -67,46 +73,59 @@ class _AddGuardianScreenState extends State<AddGuardianScreen> {
                       keyboardType: TextInputType.number,
                       inputFormatters: [viewModel.guardianCpfMaskFormatter],
                     ),
-                    const SizedBox(height: 24),
-                    Text('Dados do idoso', style: AppTextStyle.subtitleStyle),
-                    const SizedBox(height: 16),
-                    PhotoCaptureField(
-                      photoPath: viewModel.residentPhotoPath,
-                      onPhotoChanged: viewModel.setResidentPhoto,
-                      label: 'Foto do idoso (opcional)',
-                    ),
-                    const SizedBox(height: 16),
-                    AppTextField(
-                      label: 'Nome do idoso',
-                      controller: viewModel.residentNameController,
-                    ),
-                    const SizedBox(height: 16),
-                    AppTextField(
-                      label: 'Idade',
-                      controller: viewModel.residentAgeController,
-                      keyboardType: TextInputType.number,
-                    ),
-                    const SizedBox(height: 16),
-                    AppTextField(
-                      label: 'Quarto',
-                      controller: viewModel.roomNumberController,
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Medicamentos (opcional)',
-                      style: AppTextStyle.subtitleStyle,
-                    ),
-                    const SizedBox(height: 12),
-                    AppButton(
-                      label: 'Adicionar medicamento',
-                      type: ButtonType.outlined,
-                      icon: Icons.add,
-                      onPressed: () => viewModel.addMedicationDraft(context),
-                    ).padding(bottom: 12),
-                    MedicationDraftList(
-                      drafts: viewModel.medicationDrafts,
-                      onRemove: viewModel.removeMedicationDraft,
-                    ),
+                    if (!viewModel.isAddingToExistingResident) ...[
+                      const SizedBox(height: 24),
+                      Text('Dados do idoso', style: AppTextStyle.subtitleStyle),
+                      const SizedBox(height: 16),
+                      PhotoCaptureField(
+                        photoPath: viewModel.residentPhotoPath,
+                        onPhotoChanged: viewModel.setResidentPhoto,
+                        label: 'Foto do idoso (opcional)',
+                      ),
+                      const SizedBox(height: 16),
+                      AppTextField(
+                        label: 'Nome do idoso',
+                        controller: viewModel.residentNameController,
+                      ),
+                      const SizedBox(height: 16),
+                      AppTextField(
+                        label: 'Idade',
+                        controller: viewModel.residentAgeController,
+                        keyboardType: TextInputType.number,
+                      ),
+                      const SizedBox(height: 16),
+                      AppTextField(
+                        label: 'Quarto',
+                        controller: viewModel.roomNumberController,
+                      ),
+                      const SizedBox(height: 16),
+                      AppTextField(
+                        label: 'Nome do contato de emergência (opcional)',
+                        controller: viewModel.emergencyContactNameController,
+                      ),
+                      const SizedBox(height: 16),
+                      AppTextField(
+                        label: 'Telefone do contato de emergência (opcional)',
+                        controller: viewModel.emergencyContactPhoneController,
+                        keyboardType: TextInputType.phone,
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Medicamentos (opcional)',
+                        style: AppTextStyle.subtitleStyle,
+                      ),
+                      const SizedBox(height: 12),
+                      AppButton(
+                        label: 'Adicionar medicamento',
+                        type: ButtonType.outlined,
+                        icon: Icons.add,
+                        onPressed: () => viewModel.addMedicationDraft(context),
+                      ).padding(bottom: 12),
+                      MedicationDraftList(
+                        drafts: viewModel.medicationDrafts,
+                        onRemove: viewModel.removeMedicationDraft,
+                      ),
+                    ],
                     if (viewModel.errorMessage != null) ...[
                       const SizedBox(height: 16),
                       Text(
@@ -116,7 +135,9 @@ class _AddGuardianScreenState extends State<AddGuardianScreen> {
                     ],
                     const SizedBox(height: 24),
                     AppButton(
-                      label: 'Cadastrar e vincular',
+                      label: viewModel.isAddingToExistingResident
+                          ? 'Adicionar responsável'
+                          : 'Cadastrar e vincular',
                       isLoading: viewModel.isSaving,
                       onPressed: () => viewModel.save(context),
                     ),

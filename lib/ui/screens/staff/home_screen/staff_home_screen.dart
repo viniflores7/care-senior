@@ -117,8 +117,20 @@ class _StaffHomeScreenState extends State<StaffHomeScreen>
                         ),
                         ClinicInfoTab(
                           clinic: viewModel.clinic,
+                          residents: viewModel.residents,
+                          onViewResident: (residentId) => viewModel
+                              .navigateToResidentDetail(context, residentId),
                           onAddGuardian: () =>
                               viewModel.navigateToAddGuardian(context),
+                          canManageRequests: viewModel.canManageRequests,
+                          pendingLinkRequestsCount:
+                              viewModel.pendingLinkRequestsCount,
+                          onViewLinkRequests: () =>
+                              viewModel.navigateToLinkRequests(context),
+                          pendingOutingRequestsCount:
+                              viewModel.pendingOutingRequestsCount,
+                          onViewOutingRequests: () =>
+                              viewModel.navigateToOutingRequests(context),
                         ),
                         AccountTab(
                           name: viewModel.staffName,
