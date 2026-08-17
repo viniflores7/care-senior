@@ -12,6 +12,7 @@ class AppTextField extends StatefulWidget {
     this.keyboardType,
     this.inputFormatters,
     this.maxLines = 1,
+    this.onChanged,
   });
 
   final String label;
@@ -19,6 +20,7 @@ class AppTextField extends StatefulWidget {
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
   final int maxLines;
+  final ValueChanged<String>? onChanged;
 
   @override
   State<AppTextField> createState() => _AppTextFieldState();
@@ -72,6 +74,7 @@ class _AppTextFieldState extends State<AppTextField> {
             keyboardType: widget.keyboardType,
             inputFormatters: widget.inputFormatters,
             maxLines: widget.maxLines,
+            onChanged: widget.onChanged,
             style: AppTextStyle.bodyStyle,
             decoration: const InputDecoration(
               isDense: true,

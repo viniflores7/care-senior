@@ -16,7 +16,6 @@ class AccountTab extends StatelessWidget {
     required this.name,
     required this.subtitle,
     required this.photoPath,
-    this.showNotifications = true,
     required this.onSecurityTap,
     required this.onLogout,
   });
@@ -24,10 +23,6 @@ class AccountTab extends StatelessWidget {
   final String name;
   final String subtitle;
   final String? photoPath;
-
-  /// `false` para responsável ainda não vinculado a uma clínica — antes do
-  /// vínculo não há do que notificar (medicação, saúde, eventos).
-  final bool showNotifications;
 
   /// Chamado ao tocar em "Segurança" — o dono da tela navega e recarrega os
   /// dados exibidos aqui (nome/foto) quando volta com alterações salvas.
@@ -83,16 +78,6 @@ class AccountTab extends StatelessWidget {
             onTap: onSecurityTap,
           ),
         ),
-        if (showNotifications)
-          FadeSlideIn(
-            child: AccountMenuItem(
-              icon: Icons.notifications_outlined,
-              label: 'Notificações',
-              onTap: () => navigator(
-                context,
-              ).pushNamed(Routes.notificationSettingsScreen),
-            ),
-          ),
         FadeSlideIn(
           child: AccountMenuItem(
             icon: Icons.help_outline,
