@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:care_senior_study/data/models/clinic.dart';
+import 'package:care_senior_study/data/models/outing_request.dart';
 import 'package:care_senior_study/data/models/resident.dart';
 import 'package:care_senior_study/notifiers/auth_store.dart';
+import 'package:care_senior_study/routing/args/outing_request_form_screen_arguments.dart';
 import 'package:care_senior_study/routing/args/resident_detail_screen_arguments.dart';
 import 'package:care_senior_study/routing/args/viewer_role.dart';
 import 'package:care_senior_study/routing/routes.dart';
 import 'package:care_senior_study/services/auth_service.dart';
 import 'package:care_senior_study/services/notification_service.dart';
+import 'package:care_senior_study/services/outing_request_service.dart';
 import 'package:care_senior_study/services/resident_service.dart';
 import 'package:care_senior_study/utils/navigator.dart';
 
@@ -17,9 +20,11 @@ class GuardianHomeScreenViewModel extends ChangeNotifier {
   final _authService = GetIt.I<AuthService>();
   final _authStore = GetIt.I<AuthStore>();
   final _notificationService = GetIt.I<NotificationService>();
+  final _outingRequestService = GetIt.I<OutingRequestService>();
 
   List<Resident> residents = [];
   List<Clinic> _allClinics = [];
+  List<OutingRequest> outingRequests = [];
   bool isLoading = true;
   bool hasUnreadNotifications = false;
 
@@ -73,8 +78,22 @@ class GuardianHomeScreenViewModel extends ChangeNotifier {
     );
     hasUnreadNotifications = notifications.any((n) => !n.read);
 
+    outingRequests = await _outingRequestService.getRequestsByResidentIds(
+      residents.map((r) => r.id).toList(),
+    );
+
     isLoading = false;
     notifyListeners();
+  }
+
+  Future<void> navigateToNewOutingRequest(BuildContext context) async {
+    final created = await navigator(context).pushNamed(
+      Routes.guardianOutingRequestFormScreen,
+      arguments: OutingRequestFormScreenArguments(residents: residents),
+    );
+    if (created == true) {
+      await loadData();
+    }
   }
 
   void navigateToResidentDetail(BuildContext context, String residentId) {

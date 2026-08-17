@@ -4,6 +4,7 @@ import 'package:care_senior_study/ui/screens/account/account_tab.dart';
 import 'package:care_senior_study/ui/screens/guardian/home_screen/guardian_home_screen_view_model.dart';
 import 'package:care_senior_study/ui/screens/guardian/home_screen/widgets/clinic_discovery_tab.dart';
 import 'package:care_senior_study/ui/screens/guardian/home_screen/widgets/guardian_clinic_tab.dart';
+import 'package:care_senior_study/ui/screens/guardian/home_screen/widgets/guardian_outing_requests_tab.dart';
 import 'package:care_senior_study/ui/screens/guardian/home_screen/widgets/guardian_residents_tab.dart';
 import 'package:care_senior_study/ui/widgets/app_base_page/app_base_page.dart';
 import 'package:care_senior_study/ui/widgets/app_navigation_bar/app_navigation_bar.dart';
@@ -26,21 +27,32 @@ class _GuardianHomeScreenState extends State<GuardianHomeScreen>
     value: 1,
   );
 
-  static const _linkedTitles = ['Meus idosos', 'Clínica', 'Perfil'];
   static const _unlinkedTitles = ['Clínicas', 'Perfil'];
 
-  static const _linkedDestinations = [
-    NavigationDestination(
+  List<String> _linkedTitles(bool multipleClinics) => [
+    'Meus idosos',
+    'Saídas',
+    multipleClinics ? 'Clínicas' : 'Clínica',
+    'Perfil',
+  ];
+
+  List<NavigationDestination> _linkedDestinations(bool multipleClinics) => [
+    const NavigationDestination(
       icon: Icon(Icons.people_outline),
       selectedIcon: Icon(Icons.people),
       label: 'Meus idosos',
     ),
-    NavigationDestination(
-      icon: Icon(Icons.apartment_outlined),
-      selectedIcon: Icon(Icons.apartment),
-      label: 'Clínica',
+    const NavigationDestination(
+      icon: Icon(Icons.directions_walk_outlined),
+      selectedIcon: Icon(Icons.directions_walk),
+      label: 'Saídas',
     ),
     NavigationDestination(
+      icon: const Icon(Icons.apartment_outlined),
+      selectedIcon: const Icon(Icons.apartment),
+      label: multipleClinics ? 'Clínicas' : 'Clínica',
+    ),
+    const NavigationDestination(
       icon: Icon(Icons.person_outline),
       selectedIcon: Icon(Icons.person),
       label: 'Perfil',
@@ -84,7 +96,10 @@ class _GuardianHomeScreenState extends State<GuardianHomeScreen>
       listenable: viewModel,
       builder: (context, child) {
         final isLinked = viewModel.isLinked;
-        final titles = isLinked ? _linkedTitles : _unlinkedTitles;
+        final multipleClinics = viewModel.linkedClinics.length > 1;
+        final titles = isLinked
+            ? _linkedTitles(multipleClinics)
+            : _unlinkedTitles;
 
         return AppBasePage(
           title: titles[selectedIndex],
@@ -98,7 +113,7 @@ class _GuardianHomeScreenState extends State<GuardianHomeScreen>
             selectedIndex: selectedIndex,
             onDestinationSelected: _selectTab,
             destinations: isLinked
-                ? _linkedDestinations
+                ? _linkedDestinations(multipleClinics)
                 : _unlinkedDestinations,
           ),
           body: AnimatedSwitcher(
@@ -117,20 +132,27 @@ class _GuardianHomeScreenState extends State<GuardianHomeScreen>
                           ? [
                               GuardianResidentsTab(
                                 residents: viewModel.residents,
+                                clinics: viewModel.linkedClinics,
                                 onView: (residentId) =>
                                     viewModel.navigateToResidentDetail(
                                       context,
                                       residentId,
                                     ),
                               ),
+                              GuardianOutingRequestsTab(
+                                requests: viewModel.outingRequests,
+                                residents: viewModel.residents,
+                                onNewRequest: () => viewModel
+                                    .navigateToNewOutingRequest(context),
+                              ),
                               GuardianClinicTab(
                                 clinics: viewModel.linkedClinics,
+                                residents: viewModel.residents,
                               ),
                               AccountTab(
                                 name: viewModel.guardianName,
                                 subtitle: viewModel.guardianEmail,
                                 photoPath: viewModel.guardianPhotoPath,
-                                showNotifications: true,
                                 onSecurityTap: () => viewModel
                                     .navigateToAccountSecurity(context),
                                 onLogout: () => viewModel.logout(context),
@@ -146,7 +168,6 @@ class _GuardianHomeScreenState extends State<GuardianHomeScreen>
                                 name: viewModel.guardianName,
                                 subtitle: viewModel.guardianEmail,
                                 photoPath: viewModel.guardianPhotoPath,
-                                showNotifications: false,
                                 onSecurityTap: () => viewModel
                                     .navigateToAccountSecurity(context),
                                 onLogout: () => viewModel.logout(context),

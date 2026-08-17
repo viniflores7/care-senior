@@ -242,6 +242,22 @@ class _ResidentInfoStep extends StatelessWidget {
             maxLines: 3,
           ),
           const SizedBox(height: 24),
+          Text(
+            'Contato de emergência (opcional)',
+            style: AppTextStyle.subtitleStyle,
+          ),
+          const SizedBox(height: 12),
+          AppTextField(
+            label: 'Nome',
+            controller: viewModel.emergencyContactNameController,
+          ),
+          const SizedBox(height: 16),
+          AppTextField(
+            label: 'Telefone',
+            controller: viewModel.emergencyContactPhoneController,
+            keyboardType: TextInputType.phone,
+          ),
+          const SizedBox(height: 24),
           Text('Medicamentos (opcional)', style: AppTextStyle.subtitleStyle),
           const SizedBox(height: 12),
           AppButton(

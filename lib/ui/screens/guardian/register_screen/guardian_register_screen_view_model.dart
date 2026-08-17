@@ -28,6 +28,8 @@ class GuardianRegisterScreenViewModel extends ChangeNotifier {
   final residentAgeController = TextEditingController();
   final healthNotesController = TextEditingController();
   final peculiaritiesController = TextEditingController();
+  final emergencyContactNameController = TextEditingController();
+  final emergencyContactPhoneController = TextEditingController();
 
   String? selectedMood;
   String? guardianPhotoPath;
@@ -119,6 +121,13 @@ class GuardianRegisterScreenViewModel extends ChangeNotifier {
           ? null
           : peculiaritiesController.text.trim(),
       residentPhotoPath: residentPhotoPath,
+      emergencyContactName: emergencyContactNameController.text.trim().isEmpty
+          ? null
+          : emergencyContactNameController.text.trim(),
+      emergencyContactPhone:
+          emergencyContactPhoneController.text.trim().isEmpty
+          ? null
+          : emergencyContactPhoneController.text.trim(),
       medicationDrafts: medicationDrafts,
     );
 
@@ -135,6 +144,8 @@ class GuardianRegisterScreenViewModel extends ChangeNotifier {
     residentAgeController.dispose();
     healthNotesController.dispose();
     peculiaritiesController.dispose();
+    emergencyContactNameController.dispose();
+    emergencyContactPhoneController.dispose();
     super.dispose();
   }
 }
