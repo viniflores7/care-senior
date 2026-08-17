@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:care_senior_study/routing/args/activity_detail_screen_arguments.dart';
+import 'package:care_senior_study/routing/args/add_guardian_screen_arguments.dart';
 import 'package:care_senior_study/routing/args/edit_resident_screen_arguments.dart';
 import 'package:care_senior_study/routing/args/health_record_register_screen_arguments.dart';
+import 'package:care_senior_study/routing/args/link_request_review_screen_arguments.dart';
 import 'package:care_senior_study/routing/args/medication_register_screen_arguments.dart';
+import 'package:care_senior_study/routing/args/outing_request_form_screen_arguments.dart';
 import 'package:care_senior_study/routing/args/resident_detail_screen_arguments.dart';
 import 'package:care_senior_study/routing/args/schedule_activity_screen_arguments.dart';
 import 'package:care_senior_study/routing/page_route/slide_route.dart';
@@ -12,11 +15,11 @@ import 'package:care_senior_study/ui/screens/account/account_security_screen/acc
 import 'package:care_senior_study/ui/screens/account/edit_resident_screen/edit_resident_screen.dart';
 import 'package:care_senior_study/ui/screens/account/feedback_screen/feedback_screen.dart';
 import 'package:care_senior_study/ui/screens/account/help_support_screen/help_support_screen.dart';
-import 'package:care_senior_study/ui/screens/account/notification_settings_screen/notification_settings_screen.dart';
 import 'package:care_senior_study/ui/screens/activity_detail_screen/activity_detail_screen.dart';
 import 'package:care_senior_study/ui/screens/app_intro_screen/app_intro_screen.dart';
 import 'package:care_senior_study/ui/screens/guardian/home_screen/guardian_home_screen.dart';
 import 'package:care_senior_study/ui/screens/guardian/login_screen/guardian_login_screen.dart';
+import 'package:care_senior_study/ui/screens/guardian/outing_request_form_screen/outing_request_form_screen.dart';
 import 'package:care_senior_study/ui/screens/guardian/register_screen/guardian_register_screen.dart';
 import 'package:care_senior_study/ui/screens/notifications/notifications_screen.dart';
 import 'package:care_senior_study/ui/screens/resident_detail_screen/resident_detail_screen.dart';
@@ -24,8 +27,11 @@ import 'package:care_senior_study/ui/screens/role_selection_screen/role_selectio
 import 'package:care_senior_study/ui/screens/staff/add_guardian_screen/add_guardian_screen.dart';
 import 'package:care_senior_study/ui/screens/staff/health_record_register_screen/health_record_register_screen.dart';
 import 'package:care_senior_study/ui/screens/staff/home_screen/staff_home_screen.dart';
+import 'package:care_senior_study/ui/screens/staff/link_request_review_screen/link_request_review_screen.dart';
+import 'package:care_senior_study/ui/screens/staff/link_requests_screen/link_requests_screen.dart';
 import 'package:care_senior_study/ui/screens/staff/login_screen/staff_login_screen.dart';
 import 'package:care_senior_study/ui/screens/staff/medication_register_screen/medication_register_screen.dart';
+import 'package:care_senior_study/ui/screens/staff/outing_requests_screen/outing_requests_screen.dart';
 import 'package:care_senior_study/ui/screens/staff/schedule_activity_screen/schedule_activity_screen.dart';
 
 class AppRouter {
@@ -64,13 +70,46 @@ class AppRouter {
         return SlideRoute(settings: settings, page: const StaffHomeScreen());
 
       case Routes.staffAddGuardianScreen:
-        return SlideRoute(settings: settings, page: const AddGuardianScreen());
+        final residentId = args is AddGuardianScreenArguments
+            ? args.residentId
+            : null;
+        return SlideRoute(
+          settings: settings,
+          page: AddGuardianScreen(residentId: residentId),
+        );
 
       case Routes.staffScheduleActivityScreen:
         if (args is ScheduleActivityScreenArguments) {
           return SlideRoute(
             settings: settings,
             page: ScheduleActivityScreen(args: args),
+          );
+        }
+        return _errorRoute(settings);
+
+      case Routes.staffLinkRequestsScreen:
+        return SlideRoute(settings: settings, page: const LinkRequestsScreen());
+
+      case Routes.staffLinkRequestReviewScreen:
+        if (args is LinkRequestReviewScreenArguments) {
+          return SlideRoute(
+            settings: settings,
+            page: LinkRequestReviewScreen(args: args),
+          );
+        }
+        return _errorRoute(settings);
+
+      case Routes.staffOutingRequestsScreen:
+        return SlideRoute(
+          settings: settings,
+          page: const OutingRequestsScreen(),
+        );
+
+      case Routes.guardianOutingRequestFormScreen:
+        if (args is OutingRequestFormScreenArguments) {
+          return SlideRoute(
+            settings: settings,
+            page: OutingRequestFormScreen(args: args),
           );
         }
         return _errorRoute(settings);
@@ -131,12 +170,6 @@ class AppRouter {
           );
         }
         return _errorRoute(settings);
-
-      case Routes.notificationSettingsScreen:
-        return SlideRoute(
-          settings: settings,
-          page: const NotificationSettingsScreen(),
-        );
 
       case Routes.helpSupportScreen:
         return SlideRoute(settings: settings, page: const HelpSupportScreen());
