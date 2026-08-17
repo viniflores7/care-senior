@@ -3,7 +3,9 @@ import 'package:care_senior_study/services/activity_service.dart';
 import 'package:care_senior_study/services/auth_service.dart';
 import 'package:care_senior_study/services/feedback_service.dart';
 import 'package:care_senior_study/services/medication_service.dart';
+import 'package:care_senior_study/services/message_service.dart';
 import 'package:care_senior_study/services/notification_service.dart';
+import 'package:care_senior_study/services/outing_request_service.dart';
 import 'package:care_senior_study/services/resident_service.dart';
 
 class Services {
@@ -32,6 +34,16 @@ class Services {
 
     if (!getIt.isRegistered<MedicationService>()) {
       getIt.registerLazySingleton<MedicationService>(MedicationService.new);
+    }
+
+    if (!getIt.isRegistered<OutingRequestService>()) {
+      getIt.registerLazySingleton<OutingRequestService>(
+        OutingRequestService.new,
+      );
+    }
+
+    if (!getIt.isRegistered<MessageService>()) {
+      getIt.registerLazySingleton<MessageService>(MessageService.new);
     }
   }
 }

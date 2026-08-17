@@ -30,6 +30,16 @@ abstract class AuthRepository {
     required String clinicId,
   });
 
+  /// Responsáveis que já contataram [clinicId] enquanto aguardam a equipe
+  /// confirmar o vínculo — ver tela de solicitações de vínculo da equipe.
+  Future<List<Guardian>> getGuardiansByContactedClinic(String clinicId);
+
+  Future<Guardian?> getGuardianById(String id);
+
+  /// Todos os responsáveis que acompanham [residentId] — um idoso pode ter
+  /// mais de um responsável cadastrado.
+  Future<List<Guardian>> getGuardiansByResidentId(String residentId);
+
   Future<StaffMember> updateStaffProfile({
     required String id,
     required String name,
@@ -118,6 +128,31 @@ class MockAuthRepository implements AuthRepository {
     );
     _guardians[index] = updated;
     return updated;
+  }
+
+  @override
+  Future<List<Guardian>> getGuardiansByContactedClinic(String clinicId) async {
+    await Future.delayed(_latency);
+    return _guardians
+        .where((guardian) => guardian.contactedClinicIds.contains(clinicId))
+        .toList();
+  }
+
+  @override
+  Future<Guardian?> getGuardianById(String id) async {
+    await Future.delayed(_latency);
+    for (final guardian in _guardians) {
+      if (guardian.id == id) return guardian;
+    }
+    return null;
+  }
+
+  @override
+  Future<List<Guardian>> getGuardiansByResidentId(String residentId) async {
+    await Future.delayed(_latency);
+    return _guardians
+        .where((guardian) => guardian.residentIds.contains(residentId))
+        .toList();
   }
 
   @override

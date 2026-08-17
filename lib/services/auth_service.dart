@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:care_senior_study/data/models/guardian.dart';
 import 'package:care_senior_study/data/models/medication_draft.dart';
+import 'package:care_senior_study/data/models/pending_link_request.dart';
 import 'package:care_senior_study/data/models/staff_member.dart';
 import 'package:care_senior_study/data/repositories/auth_repository.dart';
 import 'package:care_senior_study/data/repositories/medication_repository.dart';
@@ -83,6 +84,8 @@ class AuthService {
     required String clinicId,
     String? guardianPhotoPath,
     String? residentPhotoPath,
+    String? emergencyContactName,
+    String? emergencyContactPhone,
     List<MedicationDraft> medicationDrafts = const [],
   }) async {
     final resident = await _residentRepository.createResident(
@@ -91,6 +94,8 @@ class AuthService {
       clinicId: clinicId,
       roomNumber: roomNumber,
       photoPath: residentPhotoPath,
+      emergencyContactName: emergencyContactName,
+      emergencyContactPhone: emergencyContactPhone,
     );
 
     await _saveMedicationDrafts(resident.id, medicationDrafts);
@@ -120,6 +125,8 @@ class AuthService {
     String? residentMood,
     String? residentPeculiarities,
     String? residentPhotoPath,
+    String? emergencyContactName,
+    String? emergencyContactPhone,
     List<MedicationDraft> medicationDrafts = const [],
   }) async {
     final resident = await _residentRepository.createResident(
@@ -129,6 +136,8 @@ class AuthService {
       mood: residentMood,
       peculiarities: residentPeculiarities,
       photoPath: residentPhotoPath,
+      emergencyContactName: emergencyContactName,
+      emergencyContactPhone: emergencyContactPhone,
     );
 
     await _saveMedicationDrafts(resident.id, medicationDrafts);
@@ -159,6 +168,77 @@ class AuthService {
       clinicId: clinicId,
     );
     _authStore.updateGuardian(updated);
+  }
+
+  /// Responsáveis que contataram [clinicId] e ainda têm idoso(s) sem
+  /// vínculo — fila da tela de solicitações de vínculo da equipe.
+  Future<List<PendingLinkRequest>> getPendingLinkRequests(
+    String clinicId,
+  ) async {
+    final guardians = await _authRepository.getGuardiansByContactedClinic(
+      clinicId,
+    );
+
+    final requests = <PendingLinkRequest>[];
+    for (final guardian in guardians) {
+      final residents = await _residentRepository.getResidentsByIds(
+        guardian.residentIds,
+      );
+      final pendingResidents = residents
+          .where((resident) => !resident.isLinkedToClinic)
+          .toList();
+      if (pendingResidents.isNotEmpty) {
+        requests.add(
+          PendingLinkRequest(guardian: guardian, residents: pendingResidents),
+        );
+      }
+    }
+    return requests;
+  }
+
+  /// Aceita o vínculo preenchendo `clinicId`/`roomNumber` de cada idoso já
+  /// cadastrado — nenhum dado do responsável ou do idoso é redigitado.
+  Future<void> acceptLinkRequest({
+    required String clinicId,
+    required Map<String, String> roomNumberByResidentId,
+  }) async {
+    for (final entry in roomNumberByResidentId.entries) {
+      await _residentRepository.updateResident(
+        id: entry.key,
+        clinicId: clinicId,
+        roomNumber: entry.value,
+      );
+    }
+  }
+
+  Future<Guardian?> getGuardianById(String id) {
+    return _authRepository.getGuardianById(id);
+  }
+
+  /// Responsáveis já cadastrados que acompanham este idoso — um idoso pode
+  /// ter mais de um (ex.: cônjuge + filho), cada um com seu próprio login.
+  Future<List<Guardian>> getGuardiansByResidentId(String residentId) {
+    return _authRepository.getGuardiansByResidentId(residentId);
+  }
+
+  /// Cadastra um responsável novo e o vincula a um idoso **já existente**
+  /// (e já vinculado a uma clínica) — usado quando mais de uma pessoa
+  /// acompanha o mesmo idoso. Diferente de [createGuardianWithResident], não
+  /// cria um `Resident` novo.
+  Future<Guardian> addGuardianToResident({
+    required String residentId,
+    required String guardianName,
+    required String guardianEmail,
+    required String guardianCpf,
+    String? guardianPhotoPath,
+  }) {
+    return _authRepository.createGuardian(
+      name: guardianName,
+      email: guardianEmail,
+      cpf: guardianCpf,
+      photoPath: guardianPhotoPath,
+      residentId: residentId,
+    );
   }
 
   void logout(BuildContext context) {

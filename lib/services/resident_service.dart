@@ -32,6 +32,8 @@ class ResidentService {
     String? mood,
     String? peculiarities,
     String? photoPath,
+    String? emergencyContactName,
+    String? emergencyContactPhone,
   }) {
     return _residentRepository.updateResident(
       id: id,
@@ -41,10 +43,33 @@ class ResidentService {
       mood: mood,
       peculiarities: peculiarities,
       photoPath: photoPath,
+      emergencyContactName: emergencyContactName,
+      emergencyContactPhone: emergencyContactPhone,
     );
   }
 
   Future<Clinic?> getClinicById(String id) {
     return _clinicRepository.getClinicById(id);
+  }
+
+  /// Preenche `clinicId`/`roomNumber` de um idoso já cadastrado (autocadastro
+  /// do responsável) quando a equipe aceita o vínculo — nenhum outro dado do
+  /// idoso é redigitado.
+  Future<Resident> linkResidentToClinic({
+    required String residentId,
+    required String clinicId,
+    required String roomNumber,
+  }) {
+    return _residentRepository.updateResident(
+      id: residentId,
+      clinicId: clinicId,
+      roomNumber: roomNumber,
+    );
+  }
+
+  /// Desvincula o idoso da clínica atual (alta, transferência ou correção
+  /// de cadastro) — volta pro estado de antes do vínculo.
+  Future<Resident> dischargeResident(String residentId) {
+    return _residentRepository.dischargeResident(residentId);
   }
 }

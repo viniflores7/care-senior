@@ -17,15 +17,24 @@ class StaffMember {
   final String? photoPath;
   final String? cpf;
 
-  StaffMember copyWith({String? name, String? cpf, String? photoPath}) {
+  /// Sentinela usada em [copyWith] pra diferenciar "campo não informado"
+  /// de "campo explicitamente nulo" — sem isso, esvaziar o CPF na tela de
+  /// Segurança e salvar não limpava o valor antigo.
+  static const Object unset = Object();
+
+  StaffMember copyWith({
+    String? name,
+    Object? cpf = unset,
+    Object? photoPath = unset,
+  }) {
     return StaffMember(
       id: id,
       name: name ?? this.name,
       email: email,
       role: role,
       clinicId: clinicId,
-      photoPath: photoPath ?? this.photoPath,
-      cpf: cpf ?? this.cpf,
+      photoPath: photoPath == unset ? this.photoPath : photoPath as String?,
+      cpf: cpf == unset ? this.cpf : cpf as String?,
     );
   }
 }

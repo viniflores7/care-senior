@@ -4,7 +4,9 @@ import 'package:care_senior_study/data/repositories/auth_repository.dart';
 import 'package:care_senior_study/data/repositories/clinic_repository.dart';
 import 'package:care_senior_study/data/repositories/feedback_repository.dart';
 import 'package:care_senior_study/data/repositories/medication_repository.dart';
+import 'package:care_senior_study/data/repositories/message_repository.dart';
 import 'package:care_senior_study/data/repositories/notification_repository.dart';
+import 'package:care_senior_study/data/repositories/outing_request_repository.dart';
 import 'package:care_senior_study/data/repositories/resident_repository.dart';
 
 class Repositories {
@@ -46,6 +48,18 @@ class Repositories {
     if (!getIt.isRegistered<MedicationRepository>()) {
       getIt.registerLazySingleton<MedicationRepository>(
         MockMedicationRepository.new,
+      );
+    }
+
+    if (!getIt.isRegistered<OutingRequestRepository>()) {
+      getIt.registerLazySingleton<OutingRequestRepository>(
+        MockOutingRequestRepository.new,
+      );
+    }
+
+    if (!getIt.isRegistered<MessageRepository>()) {
+      getIt.registerLazySingleton<MessageRepository>(
+        MockMessageRepository.new,
       );
     }
   }

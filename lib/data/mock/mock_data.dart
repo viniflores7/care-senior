@@ -8,7 +8,10 @@ import 'package:care_senior_study/data/models/guardian.dart';
 import 'package:care_senior_study/data/models/health_record.dart';
 import 'package:care_senior_study/data/models/medication.dart';
 import 'package:care_senior_study/data/models/medication_form.dart';
+import 'package:care_senior_study/data/models/message.dart';
 import 'package:care_senior_study/data/models/notification_type.dart';
+import 'package:care_senior_study/data/models/outing_request.dart';
+import 'package:care_senior_study/data/models/outing_request_status.dart';
 import 'package:care_senior_study/data/models/resident.dart';
 import 'package:care_senior_study/data/models/resident_mood.dart';
 import 'package:care_senior_study/data/models/staff_member.dart';
@@ -28,6 +31,11 @@ class MockData {
   static DateTime _tomorrow(int hour, int minute) {
     final tomorrow = DateTime.now().add(const Duration(days: 1));
     return DateTime(tomorrow.year, tomorrow.month, tomorrow.day, hour, minute);
+  }
+
+  static DateTime _inDays(int days, int hour, int minute) {
+    final day = DateTime.now().add(Duration(days: days));
+    return DateTime(day.year, day.month, day.day, hour, minute);
   }
 
   static final List<Clinic> clinics = [
@@ -85,6 +93,8 @@ class MockData {
       clinicId: 'clinic-1',
       roomNumber: '12B',
       healthNotes: 'Hipertensão controlada. Mobilidade reduzida.',
+      emergencyContactName: 'Fernanda Costa (filha)',
+      emergencyContactPhone: '(61) 99123-4567',
     ),
     const Resident(
       id: 'resident-2',
@@ -152,11 +162,30 @@ class MockData {
       email: 'ricardo@teste.com',
       residentIds: ['resident-5'],
     ),
+    // Segundo responsável do mesmo idoso (resident-1, junto com
+    // guardian-1) — demonstra que um idoso pode ter mais de um responsável.
+    const Guardian(
+      id: 'guardian-5',
+      name: 'Marcelo Costa',
+      email: 'marcelo@teste.com',
+      residentIds: ['resident-1'],
+    ),
+    // Autocadastrada, já contatou a clinic-1 e aguarda a equipe aceitar o
+    // vínculo — ver tela de solicitações de vínculo da equipe.
     const Guardian(
       id: 'guardian-3',
       name: 'Camila Torres',
       email: 'novo@teste.com',
       residentIds: ['resident-7'],
+      contactedClinicIds: ['clinic-1'],
+    ),
+    // Responsável com idosos em clínicas diferentes — demonstra a
+    // organização por clínica nas abas "Meus idosos" e "Clínica".
+    const Guardian(
+      id: 'guardian-4',
+      name: 'Patrícia Lima',
+      email: 'patricia@teste.com',
+      residentIds: ['resident-4', 'resident-6'],
     ),
   ];
 
@@ -173,6 +202,15 @@ class MockData {
       name: 'Cuidador Pedro Henrique',
       email: 'pedro@clinicabemviver.com',
       role: 'Cuidador',
+      clinicId: 'clinic-2',
+    ),
+    // Toda clínica precisa de alguém que possa aprovar solicitações — sem
+    // uma enfermeira/coordenadora, a clinic-2 ficaria só com um cuidador.
+    const StaffMember(
+      id: 'staff-4',
+      name: 'Enfermeira Camila Duarte',
+      email: 'camila@clinicabemviver.com',
+      role: 'Enfermeira',
       clinicId: 'clinic-2',
     ),
     const StaffMember(
@@ -511,6 +549,68 @@ class MockData {
     ),
   ];
 
+  static final List<OutingRequest> outingRequests = [
+    // Fernanda Costa (guardian-1) pediu pra levar Maria Aparecida
+    // (resident-1) no fim de semana — ainda aguardando a equipe da clinic-1.
+    OutingRequest(
+      id: 'outing-1',
+      residentId: 'resident-1',
+      guardianId: 'guardian-1',
+      departureAt: _inDays(2, 18, 0),
+      returnAt: _inDays(4, 20, 0),
+      createdAt: DateTime.now().subtract(const Duration(hours: 3)),
+      notes:
+          'Vai passar o fim de semana na casa da filha, em Águas Claras. '
+          'Precisa levar a Losartana das 8h.',
+    ),
+    // Já aprovada pela equipe da clinic-1.
+    OutingRequest(
+      id: 'outing-2',
+      residentId: 'resident-2',
+      guardianId: 'guardian-1',
+      departureAt: _inDays(-3, 9, 0),
+      returnAt: _inDays(-1, 19, 0),
+      createdAt: DateTime.now().subtract(const Duration(days: 5)),
+      notes: 'Almoço de aniversário em família.',
+      status: OutingRequestStatus.approved,
+      respondedAt: DateTime.now().subtract(const Duration(days: 4)),
+    ),
+    // Recusada pela equipe da clinic-2 — demonstra o motivo visível ao
+    // responsável.
+    OutingRequest(
+      id: 'outing-3',
+      residentId: 'resident-4',
+      guardianId: 'guardian-4',
+      departureAt: _inDays(-2, 8, 0),
+      returnAt: _inDays(-2, 20, 0),
+      createdAt: DateTime.now().subtract(const Duration(days: 6)),
+      status: OutingRequestStatus.rejected,
+      rejectionReason:
+          'Sebastião está em recuperação da fratura de quadril e tem '
+          'fisioterapia agendada nesse dia — sugerimos remarcar.',
+      respondedAt: DateTime.now().subtract(const Duration(days: 5)),
+    ),
+  ];
+
+  static final List<Message> messages = [
+    Message(
+      id: 'message-1',
+      residentId: 'resident-1',
+      senderRole: ViewerRole.guardian,
+      senderName: 'Fernanda Costa',
+      text: 'Boa tarde! Vou chegar uns 15 minutos atrasada pra visita de hoje.',
+      sentAt: DateTime.now().subtract(const Duration(hours: 2, minutes: 10)),
+    ),
+    Message(
+      id: 'message-2',
+      residentId: 'resident-1',
+      senderRole: ViewerRole.staff,
+      senderName: 'Enfermeira Juliana Martins',
+      text: 'Sem problemas, Fernanda! Vamos avisar a Maria Aparecida.',
+      sentAt: DateTime.now().subtract(const Duration(hours: 2)),
+    ),
+  ];
+
   static final _now = DateTime.now();
 
   static final List<AppNotification> notifications = [
@@ -585,6 +685,16 @@ class MockData {
       message: 'Recebemos sua sugestão e nossa equipe já está analisando.',
       createdAt: _now.subtract(const Duration(days: 1)),
       read: true,
+    ),
+    AppNotification(
+      id: 'notification-9',
+      type: NotificationType.general,
+      title: 'Nova solicitação de saída',
+      message:
+          'Fernanda Costa quer levar Maria Aparecida Souza no fim de semana '
+          'e aguarda aprovação.',
+      createdAt: _now.subtract(const Duration(hours: 3)),
+      audience: ViewerRole.staff,
     ),
   ];
 }

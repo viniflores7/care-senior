@@ -19,17 +19,33 @@ abstract class ResidentRepository {
     String? mood,
     String? peculiarities,
     String? photoPath,
+    String? emergencyContactName,
+    String? emergencyContactPhone,
   });
 
+  /// Campos não informados (omitidos) mantêm o valor atual; passar `null`
+  /// explicitamente limpa o campo — ver `Resident.unset`. Isso permite que
+  /// atualizações parciais (ex.: `linkResidentToClinic`, só mexendo em
+  /// `clinicId`/`roomNumber`) e atualizações de formulário completo (ex.:
+  /// `EditResidentScreen`, que pode limpar `peculiarities`) usem o mesmo
+  /// método sem se atrapalharem.
   Future<Resident> updateResident({
     required String id,
-    String? name,
-    int? age,
-    String? healthNotes,
-    String? mood,
-    String? peculiarities,
-    String? photoPath,
+    Object? name = Resident.unset,
+    Object? age = Resident.unset,
+    Object? healthNotes = Resident.unset,
+    Object? mood = Resident.unset,
+    Object? peculiarities = Resident.unset,
+    Object? photoPath = Resident.unset,
+    Object? clinicId = Resident.unset,
+    Object? roomNumber = Resident.unset,
+    Object? emergencyContactName = Resident.unset,
+    Object? emergencyContactPhone = Resident.unset,
   });
+
+  /// Desvincula o idoso da clínica atual (alta, transferência ou correção
+  /// de cadastro) — volta pro mesmo estado de antes de qualquer vínculo.
+  Future<Resident> dischargeResident(String id);
 }
 
 class MockResidentRepository implements ResidentRepository {
@@ -70,6 +86,8 @@ class MockResidentRepository implements ResidentRepository {
     String? mood,
     String? peculiarities,
     String? photoPath,
+    String? emergencyContactName,
+    String? emergencyContactPhone,
   }) async {
     await Future.delayed(_latency);
     final resident = Resident(
@@ -82,6 +100,8 @@ class MockResidentRepository implements ResidentRepository {
       mood: mood,
       peculiarities: peculiarities,
       photoPath: photoPath,
+      emergencyContactName: emergencyContactName,
+      emergencyContactPhone: emergencyContactPhone,
     );
     MockData.residents.add(resident);
     return resident;
@@ -90,12 +110,16 @@ class MockResidentRepository implements ResidentRepository {
   @override
   Future<Resident> updateResident({
     required String id,
-    String? name,
-    int? age,
-    String? healthNotes,
-    String? mood,
-    String? peculiarities,
-    String? photoPath,
+    Object? name = Resident.unset,
+    Object? age = Resident.unset,
+    Object? healthNotes = Resident.unset,
+    Object? mood = Resident.unset,
+    Object? peculiarities = Resident.unset,
+    Object? photoPath = Resident.unset,
+    Object? clinicId = Resident.unset,
+    Object? roomNumber = Resident.unset,
+    Object? emergencyContactName = Resident.unset,
+    Object? emergencyContactPhone = Resident.unset,
   }) async {
     await Future.delayed(_latency);
     final index = MockData.residents.indexWhere((r) => r.id == id);
@@ -110,7 +134,24 @@ class MockResidentRepository implements ResidentRepository {
       mood: mood,
       peculiarities: peculiarities,
       photoPath: photoPath,
+      clinicId: clinicId,
+      roomNumber: roomNumber,
+      emergencyContactName: emergencyContactName,
+      emergencyContactPhone: emergencyContactPhone,
     );
+    MockData.residents[index] = updated;
+    return updated;
+  }
+
+  @override
+  Future<Resident> dischargeResident(String id) async {
+    await Future.delayed(_latency);
+    final index = MockData.residents.indexWhere((r) => r.id == id);
+    if (index == -1) {
+      throw StateError('Idoso não encontrado: $id');
+    }
+
+    final updated = MockData.residents[index].discharge();
     MockData.residents[index] = updated;
     return updated;
   }
